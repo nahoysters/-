@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>アナログ時計（ナホ作）</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #222;
+      margin: 0;
+    }
+
+    .clock {
+      width: 300px;
+      height: 300px;
+      border: 8px solid #038585;
+      border-radius: 50%;
+      position: relative;
+      background: #000;
+    }
+
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      border-radius: 6px;
+    }
+
+    .hour {
+      width: 6px;
+      height: 70px;
+      background: #038585;
+    }
+
+    .minute {
+      width: 4px;
+      height: 100px;
+      background: #1fc2c2;
+    }
+
+    .second {
+      width: 2px;
+      height: 130px;
+      background: #0fe8e8;
+    }
+
+    .center {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    .mark {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    .mark div {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: center center;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      user-select: none;
+      line-height: 1;
+    }
+
+    .dot {
+      font-size: 10px;
+    }
+
+    .number {
+      font-size: 16px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="clock">
+    <div class="hand hour" id="hour"></div>
+    <div class="hand minute" id="minute"></div>
+    <div class="hand second" id="second"></div>
+    <div class="center"></div>
+    <div class="mark" id="marks"></div>
+  </div>
+
+  <script>
+    const hourHand = document.getElementById('hour');
+    const minuteHand = document.getElementById('minute');
+    const secondHand = document.getElementById('second');
+    const marksContainer = document.getElementById('marks');
+
+    // 時計針を更新
+    function updateClock() {
+      const now = new Date();
+      const seconds = now.getSeconds();
+      const minutes = now.getMinutes();
+      const hours = now.getHours();
+
+      const secondDeg = seconds * 6;
+      const minuteDeg = minutes * 6 + seconds * 0.1;
+      const hourDeg = (hours % 12) * 30 + minutes * 0.5;
+
+      secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+      minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+      hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+    }
+
+    // 目盛りを作成（12・3・6・9 のみ数字表示）
+    function createMarks() {
+      for (let i = 1; i <= 12; i++) {
+        const mark = document.createElement('div');
+        const angle = i * 30; // 30,60,...,360
+
+        // 12・3・6・9 のみ数字表示
+        if ([3, 6, 9, 12].includes(i)) {
+          mark.classList.add('number');
+          mark.textContent = String(i === 12 ? 12 : i); // i が 12 のときは '12'
+        } else {
+          mark.classList.add('dot');
+          mark.textContent = '・';
+        }
+
+        // 数字はやや内側、ドットは外側
+        const radius = ([3, 6, 9, 12].includes(i)) ? 110 : 130;
+        const rad = (angle - 90) * (Math.PI / 180);
+        let x = radius * Math.cos(rad);
+        let y = radius * Math.sin(rad);
+
+// 個別微調整（見た目のバランス）
+let rotateDeg = 0; // テキストをデフォルト正面向き
+if (i === 12) {
+  y -= 14;
+  mark.style.fontSize = "30px";  // 
+} else if (i === 3) {
+  x += 10; 
+  y -= 10;
+  mark.style.fontSize = "30px";  //
+} else if (i === 9) {
+  x -= 10; 
+  y -= 10;
+  mark.style.fontSize = "30px";  // 
+} else if (i === 6) {
+  y += 6;
+  mark.style.fontSize = "30px";
+}
+        // 中心を(-50%,-50%)に合わせてから移動・回転（位置ズレを防ぐ）
+        mark.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotateDeg}deg)`;
+
+        marksContainer.appendChild(mark);
+      }
+    }
+
+    createMarks();
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+</body>
+</html>
